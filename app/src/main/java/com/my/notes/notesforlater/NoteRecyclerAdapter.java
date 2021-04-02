@@ -1,22 +1,28 @@
 package com.my.notes.notesforlater;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
+import java.util.List;
+
 public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapter.NoteRecyclerViewHolder>
 {
 	private final Context mContext;
+	private final List<NoteInfo> mNotes;
 	private final LayoutInflater mLayoutInflater;
 
-	public NoteRecyclerAdapter(Context context)
+	public NoteRecyclerAdapter(Context context, List<NoteInfo> notes)
 	{
 		mContext = context;
+		mNotes = notes;
 		mLayoutInflater = LayoutInflater.from(mContext);
 	}
 
@@ -31,21 +37,39 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
 	@Override
 	public void onBindViewHolder(@NonNull NoteRecyclerViewHolder holder, int position)
 	{
-
+		NoteInfo note = mNotes.get(position);
+		holder.mTextCourse.setText(note.getCourse().getTitle());
+		holder.mTextTitle.setText(note.getTitle());
+		holder.mCurrentPosition = position;
 	}
 
 	@Override
 	public int getItemCount()
 	{
-		return 0;
+		return mNotes.size();
 	}
 
 	public class NoteRecyclerViewHolder extends ViewHolder
 	{
+		public final TextView mTextCourse;
+		public final TextView mTextTitle;
+		public int mCurrentPosition;
 
 		public NoteRecyclerViewHolder(@NonNull View itemView)
 		{
 			super(itemView);
+			mTextCourse = itemView.findViewById(R.id.text_course);
+			mTextTitle = itemView.findViewById(R.id.text_title);
+			itemView.setOnClickListener(new View.OnClickListener()
+			{
+				@Override
+				public void onClick(View v)
+				{
+					Intent intent = new Intent(mContext, MainActivity.class);
+					intent.putExtra(MainActivity.NOTE_POSITION, mCurrentPosition);
+					mContext.startActivity(intent);
+				}
+			});
 		}
 	}
 }

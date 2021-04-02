@@ -11,16 +11,17 @@ import android.widget.Spinner;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.ViewModelProvider;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
 {
 	private final String TAG = getClass().getSimpleName();
-	public static final String NOTE_POSITION = "com.noteforlater.noteforlater.NOTE_POSITION";
-	public static final String ORIGINAL_NOTE_COURSE_ID = "com.noteforlater.noteforlater.ORIGINAL_NOTE_COURSE_ID";
-	public static final String ORIGINAL_NOTE_TITLE = "com.noteforlater.noteforlater.ORIGINAL_NOTE_TITLE";
-	public static final String ORIGINAL_NOTE_TEXT = "com.noteforlater.noteforlater.ORIGINAL_NOTE_TEXT";
+	public static final String NOTE_POSITION = "com.my.notes.notesforlater.NOTE_POSITION";
+	public static final String ORIGINAL_NOTE_COURSE_ID = "com.my.notes.notesforlater.ORIGINAL_NOTE_COURSE_ID";
+	public static final String ORIGINAL_NOTE_TITLE = "com.my.notes.notesforlater.ORIGINAL_NOTE_TITLE";
+	public static final String ORIGINAL_NOTE_TEXT = "com.my.notes.notesforlater.ORIGINAL_NOTE_TEXT";
 	public static final int POSITION_NOT_SET = -1;
 	private NoteInfo mNote;
 	private boolean mIsNewNote;
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity
 	private String mOriginalNoteCourseId;
 	private String mOriginalNoteTitle;
 	private String mOriginalNoteText;
+	private NoteActivityViewModel mViewModel;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -40,6 +42,13 @@ public class MainActivity extends AppCompatActivity
 		setContentView(R.layout.activity_main);
 		Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
+
+		ViewModelProvider viewModelProvider = new ViewModelProvider(getViewModelStore(),
+				ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()));
+		mViewModel = viewModelProvider.get(NoteActivityViewModel.class);
+		if (mViewModel.mIsNewlyCreated && savedInstanceState != null)
+			mViewModel.restoreState(savedInstanceState);
+		mViewModel.mIsNewlyCreated = false;
 
 		mSpinnerCourses = findViewById(R.id.spinner_courses);
 
@@ -118,9 +127,8 @@ public class MainActivity extends AppCompatActivity
 	protected void onSaveInstanceState(Bundle outState)
 	{
 		super.onSaveInstanceState(outState);
-		outState.putString(ORIGINAL_NOTE_COURSE_ID, mOriginalNoteCourseId);
-		outState.putString(ORIGINAL_NOTE_TITLE, mOriginalNoteTitle);
-		outState.putString(ORIGINAL_NOTE_TEXT, mOriginalNoteText);
+		if (outState != null)
+			mViewModel.saveState(outState);
 	}
 
 	private void saveNote()
@@ -161,6 +169,7 @@ public class MainActivity extends AppCompatActivity
 //        mNote = dm.getNotes().get(mNotePosition);
 	}
 
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
@@ -188,8 +197,38 @@ public class MainActivity extends AppCompatActivity
 			mIsCancelling = true;
 			finish();
 		}
+		else if (id == R.id.action_next)
+		{
+			moveNext();
+			return true;
+		}
 
 		return super.onOptionsItemSelected(item);
+	}
+
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu)
+	{
+		MenuItem item = menu.findItem(R.id.action_next);
+		int lastNoteIndex = DataManager.getInstance().getNotes().size() - 1;
+
+		item.setEnabled(mNotePosition < lastNoteIndex);
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+
+	private void moveNext()
+	{
+		saveNote();
+
+		++mNotePosition;
+		mNote = DataManager.getInstance().getNotes().get(mNotePosition);
+
+		saveOriginalNoteValues();
+		displayNote(mSpinnerCourses, mTextNoteTitle, mTextNoteText);
+
+		invalidateOptionsMenu();
 	}
 
 	private void sendEmail()
