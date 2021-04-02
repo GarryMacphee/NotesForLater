@@ -65,8 +65,8 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
 				@Override
 				public void onClick(View v)
 				{
-					Intent intent = new Intent(mContext, MainActivity.class);
-					intent.putExtra(MainActivity.NOTE_POSITION, mCurrentPosition);
+					Intent intent = new Intent(mContext, NotesActivity.class);
+					intent.putExtra(NotesActivity.NOTE_POSITION, mCurrentPosition);
 					mContext.startActivity(intent);
 				}
 			});
