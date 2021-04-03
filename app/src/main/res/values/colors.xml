@@ -11,4 +11,9 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#ff4081</color>
+    <color name="sypho_grey">#001a1f</color>
+    <color name="sypho_blue">#004b8e</color>
+    <color name="sypho_blue_light">#4b76bf</color>
+    <color name="sypho_blue_dark">#002460</color>
+    <color name="title_colour">#002c51</color>
 </resources>

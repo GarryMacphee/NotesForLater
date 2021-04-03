@@ -117,18 +117,15 @@ public class DataManager
 		course.getModule("android_intents_m01").setComplete(true);
 		course.getModule("android_intents_m02").setComplete(true);
 		course.getModule("android_intents_m03").setComplete(true);
-		mNotes.add(new NoteInfo(course, "Dynamic intent resolution",
-				"Wow, intents allow components to be resolved at runtime"));
-		mNotes.add(new NoteInfo(course, "Delegating intents",
-				"PendingIntents are powerful; they delegate much more than just a component invocation"));
+
+		mNotes.add(new NoteInfo(course, "Dynamic intent resolution", "Wow, intents allow components to be resolved at runtime"));
+		mNotes.add(new NoteInfo(course, "Delegating intents", "PendingIntents are powerful; they delegate much more than just a component invocation"));
 
 		course = dm.getCourse("android_async");
 		course.getModule("android_async_m01").setComplete(true);
 		course.getModule("android_async_m02").setComplete(true);
-		mNotes.add(new NoteInfo(course, "Service default threads",
-				"Did you know that by default an Android Service will tie up the UI thread?"));
-		mNotes.add(new NoteInfo(course, "Long running operations",
-				"Foreground Services can be tied to a notification icon"));
+		mNotes.add(new NoteInfo(course, "Service default threads", "Did you know that by default an Android Service will tie up the UI thread?"));
+		mNotes.add(new NoteInfo(course, "Long running operations", "Foreground Services can be tied to a notification icon"));
 
 		course = dm.getCourse("java_lang");
 		course.getModule("java_lang_m01").setComplete(true);

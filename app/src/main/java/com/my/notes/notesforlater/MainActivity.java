@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.GridLayout;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -85,7 +86,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		mRecyclerView = findViewById(R.id.list_items_recycler);
 		mLinearLayoutManager = new LinearLayoutManager(this);
-		mGridLayoutManager = new GridLayoutManager(this, 2);
+		mGridLayoutManager = new GridLayoutManager(this,
+				getResources().getInteger(R.integer.course_grid_span));
+
+		GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(
+				GridLayout.spec(GridLayout.UNDEFINED, 1f),
+				GridLayout.spec(GridLayout.UNDEFINED, 1f));
+
 
 		List<NoteInfo> notes = DataManager.getInstance().getNotes();
 		mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, notes);
