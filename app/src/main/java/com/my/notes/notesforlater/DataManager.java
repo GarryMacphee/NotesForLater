@@ -173,7 +173,7 @@ public class DataManager
 		modules.add(new ModuleInfo("android_async_m03", "Service lifecycle management"));
 		modules.add(new ModuleInfo("android_async_m04", "Interacting with services"));
 
-		return new CourseInfo("android_async", "Android Async Programming and Services", modules);
+		return new CourseInfo("android_async", "Android Async Programming", modules);
 	}
 
 	private CourseInfo initializeCourse3()
