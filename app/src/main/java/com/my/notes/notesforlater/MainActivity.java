@@ -58,14 +58,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		initializeDisplayContent();
 	}
 
-
-	private void selectNavigationMenuItem(int id)
-	{
-		NavigationView navigationView = findViewById(R.id.nav_view);
-		Menu menu = navigationView.getMenu();
-		menu.findItem(id).setChecked(true);
-	}
-
 	@Override
 	public void onBackPressed()
 	{
