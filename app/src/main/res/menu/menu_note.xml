@@ -7,12 +7,14 @@
 		android:icon="@drawable/ic_baseline_undo_24"
 		android:orderInCategory="100"
 		android:title="@string/cancel"
+		android:visible="true"
 		app:showAsAction="ifRoom" />
 	<item
 		android:id="@+id/action_next"
 		android:icon="@drawable/ic_baseline_arrow_next_24"
 		android:orderInCategory="101"
 		android:title="Next"
+		android:visible="false"
 		app:showAsAction="ifRoom" />
 	<item
 		android:id="@+id/action_send_mail"

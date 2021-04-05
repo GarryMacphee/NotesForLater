@@ -1,7 +1,13 @@
 package com.my.notes.notesforlater;
 
+import android.annotation.SuppressLint;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,7 +21,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,7 +36,9 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
+import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
+
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor>
 {
 	private NoteRecyclerAdapter mNoteRecyclerAdapter;
 	private AppBarConfiguration mAppBarConfiguration;
@@ -36,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private CourseRecyclerAdapter mMCourseRecyclerAdapter;
 	private GridLayoutManager mGridLayoutManager;
 	private NotesForLaterDBHelper mDbOpenHelper;
+	public static final int LOADER_NOTES = 0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -75,22 +87,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		mRecyclerView = findViewById(R.id.list_items_recycler);
 		mLinearLayoutManager = new LinearLayoutManager(this);
-		mGridLayoutManager = new GridLayoutManager(this,
-				getResources().getInteger(R.integer.course_grid_span));
+		mGridLayoutManager = new GridLayoutManager(this, getResources()
+				.getInteger(R.integer.course_grid_span));
 
-		GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(
-				GridLayout.spec(GridLayout.UNDEFINED, 1f),
-				GridLayout.spec(GridLayout.UNDEFINED, 1f));
+		GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(GridLayout
+				.spec(GridLayout.UNDEFINED, 1f), GridLayout.spec(GridLayout.UNDEFINED, 1f));
 
-
-		List<NoteInfo> notes = DataManager.getInstance().getNotes();
-		mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, notes);
+		mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, null);
 
 		List<CourseInfo> courses = DataManager.getInstance().getCourses();
 		mMCourseRecyclerAdapter = new CourseRecyclerAdapter(this, courses);
 
 		displayNotes();
 	}
+
 
 	private void displayNotes()
 	{
@@ -99,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		selectNavigationItem(R.id.nav_notes);
 	}
+
 
 	private void selectNavigationItem(int id)
 	{
@@ -113,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		mDbOpenHelper.close();
 		super.onDestroy();
 	}
+
 
 	@Override
 	public void onBackPressed()
@@ -133,16 +145,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	protected void onResume()
 	{
 		super.onResume();
-		mNoteRecyclerAdapter.notifyDataSetChanged();
+
+		getLoaderManager().restartLoader(LOADER_NOTES, null, this);
+
 		updateNavHeader();
 	}
 
+
+	private void loadNotes()
+	{
+		SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
+
+		final String[] noteColumns = {
+				NoteInfoEntry.COLUMN_NOTE_TITLE,
+				NoteInfoEntry.COLUMN_COURSE_ID,
+				NoteInfoEntry._ID
+		};
+
+		String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+
+		final Cursor noteCursor = db
+				.query(NoteInfoEntry.TABLE_NAME, noteColumns, null, null, null, null, noteOrderBy);
+
+		mNoteRecyclerAdapter.changeCursor(noteCursor);
+	}
+
+
 	private void updateNavHeader()
 	{
-		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+		NavigationView navigationView = findViewById(R.id.nav_view);
 		View headerView = navigationView.getHeaderView(0);
-		TextView textUserName = (TextView) headerView.findViewById(R.id.text_user_name);
-		TextView textEmailAddress = (TextView) headerView.findViewById(R.id.text_email_address);
+		TextView textUserName = headerView.findViewById(R.id.text_user_name);
+		TextView textEmailAddress = headerView.findViewById(R.id.text_email_address);
 
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
 		String userName = pref.getString("user_display_name", "");
@@ -193,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 		else if (id == R.id.nav_share)
 		{
-			handleSelection("Share");
+			handleShare();
 		}
 		else if (id == R.id.nav_send)
 		{
@@ -205,13 +239,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		return true;
 	}
 
-	/*@Override
+	@Override
 	public boolean onSupportNavigateUp()
 	{
 		NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
 		return NavigationUI.navigateUp(navController, mAppBarConfiguration)
 				|| super.onSupportNavigateUp();
-	}*/
+	}
+
+	private void handleShare()
+	{
+		View view = findViewById(R.id.list_items_recycler);
+		Snackbar.make(view, "Share to - " + PreferenceManager.getDefaultSharedPreferences(this)
+															 .getString("user_favorite_social", ""),
+				Snackbar.LENGTH_LONG).show();
+	}
+
 
 	private void displayCourses()
 	{
@@ -224,5 +267,56 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		View view = findViewById(R.id.list_items_recycler);
 		Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
+	}
+
+	@SuppressLint("StaticFieldLeak")
+	@Override
+	public Loader<Cursor> onCreateLoader(int id, Bundle args)
+	{
+		CursorLoader loader = null;
+		if (id == LOADER_NOTES)
+		{
+			loader = new CursorLoader(this)
+			{
+				@Override
+				public Cursor loadInBackground()
+				{
+					SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
+
+					String[] noteColumns = {
+							NoteInfoEntry._ID,
+							NoteInfoEntry.COLUMN_NOTE_TITLE,
+							NoteInfoEntry.COLUMN_COURSE_ID
+					};
+
+					final String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+
+					return db
+							.query(NoteInfoEntry.TABLE_NAME, noteColumns, null, null, null, null, noteOrderBy);
+
+				}
+			};
+		}
+
+		return loader;
+	}
+
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor data)
+	{
+		if (loader.getId() == LOADER_NOTES)
+		{
+			mNoteRecyclerAdapter.changeCursor(data);
+		}
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> loader)
+	{
+		if (loader.getId() == LOADER_NOTES)
+		{
+			mNoteRecyclerAdapter.changeCursor(null);
+		}
 	}
 }

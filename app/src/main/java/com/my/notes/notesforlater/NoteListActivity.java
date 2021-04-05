@@ -15,6 +15,8 @@ import java.util.List;
 public class NoteListActivity extends AppCompatActivity
 {
 	private NoteRecyclerAdapter mNoteRecyclerAdapter;
+	private RecyclerView mRecyclerView;
+	private LinearLayoutManager mLinearLayoutManager;
 
 	//private ArrayAdapter<NoteInfo> mAdapterNotes;
 
@@ -27,21 +29,20 @@ public class NoteListActivity extends AppCompatActivity
 		setSupportActionBar(toolbar);
 
 		FloatingActionButton fab = findViewById(R.id.fab);
-		fab.setOnClickListener(view -> startActivity(
-				new Intent(NoteListActivity.this, NotesActivity.class)));
+		fab.setOnClickListener(view -> startActivity(new Intent(NoteListActivity.this, NotesActivity.class)));
 
 		initializeDisplayContent();
 	}
 
 	private void initializeDisplayContent()
 	{
-		final RecyclerView recyclerView = findViewById(R.id.list_notes);
-		LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-		recyclerView.setLayoutManager(linearLayoutManager);
+		mRecyclerView = findViewById(R.id.list_notes);
+		mLinearLayoutManager = new LinearLayoutManager(this);
+		mRecyclerView.setLayoutManager(mLinearLayoutManager);
 
 		List<NoteInfo> notes = DataManager.getInstance().getNotes();
-		mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, notes);
-		recyclerView.setAdapter(mNoteRecyclerAdapter);
+		mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, null);
+		mRecyclerView.setAdapter(mNoteRecyclerAdapter);
 	}
 
 	@Override

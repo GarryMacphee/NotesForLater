@@ -21,15 +21,17 @@ public class NoteInfo implements Parcelable
 					return new NoteInfo[size];
 				}
 			};
+	private int mId;
 	private CourseInfo mCourse;
 	private String mTitle;
 	private String mText;
 
-	public NoteInfo(CourseInfo course, String title, String text)
+	public NoteInfo(int id, CourseInfo course, String title, String text)
 	{
 		mCourse = course;
 		mTitle = title;
 		mText = text;
+		mId = id;
 	}
 
 	private NoteInfo(Parcel source)
@@ -38,6 +40,14 @@ public class NoteInfo implements Parcelable
 		mTitle = source.readString();
 		mText = source.readString();
 	}
+
+	public NoteInfo(CourseInfo course, String title, String text)
+	{
+		mCourse = course;
+		mTitle = title;
+		mText = text;
+	}
+
 
 	public CourseInfo getCourse()
 	{
@@ -109,5 +119,10 @@ public class NoteInfo implements Parcelable
 		dest.writeParcelable(mCourse, 0);
 		dest.writeString(mTitle);
 		dest.writeString(mText);
+	}
+
+	public int getId()
+	{
+		return mId;
 	}
 }

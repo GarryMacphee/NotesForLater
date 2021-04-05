@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="fa_icon_search">&#xf002;</string>
+	<string name="fa_icon_user_cog">&#xf085;</string>
+	<string name="fa_icon_marker">&#xf041;</string>
+	<string name="fa_icon_spanner">&#xf0ad;</string>
+	<string name="fa_icon_sign_in">&#xf090;</string>
+	<string name="fa_icon_sign_out">&#xf08b;</string>
+	<string name="fa_icon_register">&#xf234;</string>
+	<string name="fa_icon_hourglass">&#xf252;</string>
+	<string name="fa_level_up_alt">&#xf148;</string>
+	<string name="fa_icon_dashboard">&#xf0e4;</string>
+	<string name="fa_icon_money_bill">&#xf0d6;</string>
+	<string name="fa_icon_box_up">&#xf49f;</string>
+	<string name="fa_icon_ware_house">&#xf494;</string>
+	<string name="fa_icon_box_full">&#xf49c;</string>
+	<string name="fa_icon_tag">&#xf02b;</string>
+	<string name="fa_icon_location">&#xf124;</string>
+	<string name="fa_icon_user">&#xf406;</string>
+</resources>

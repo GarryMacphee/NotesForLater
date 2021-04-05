@@ -25,19 +25,21 @@ public class DataManager
 	{
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-		final String[] sColumns = {
+		final String[] courseColumns = {
 				CourseInfoEntry.COLUMN_COURSE_ID,
 				CourseInfoEntry.COLUMN_COURSE_TITLE};
 
 		final Cursor courseCursor = db
-				.query(CourseInfoEntry.TABLE_NAME, sColumns, null, null, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE + " ASC");
+				.query(CourseInfoEntry.TABLE_NAME, courseColumns, null, null, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE + " DESC");
 
 		loadCoursesFromDatabase(courseCursor);
 
 		final String[] noteColumns = {
 				NoteInfoEntry.COLUMN_NOTE_TITLE,
 				NoteInfoEntry.COLUMN_NOTE_TEXT,
-				NoteInfoEntry.COLUMN_COURSE_ID};
+				NoteInfoEntry.COLUMN_COURSE_ID,
+				NoteInfoEntry._ID
+		};
 
 		String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
 
@@ -73,6 +75,8 @@ public class DataManager
 		int noteTitlePos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
 		int noteTextPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT);
 		int noteCourseIdPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
+		int idpos = cursor.getColumnIndex(NoteInfoEntry._ID);
+
 
 		DataManager dm = getInstance();
 		dm.mNotes.clear();
@@ -82,11 +86,11 @@ public class DataManager
 			String noteTitle = cursor.getString(noteTitlePos);
 			String noteText = cursor.getString(noteTextPos);
 			String noteCourseId = cursor.getString(noteCourseIdPos);
+			int id = cursor.getInt(idpos);
 
 			CourseInfo noteCourse = dm.getCourse(noteCourseId);
 
-			NoteInfo noteInfo = new NoteInfo(noteCourse, noteTitle, noteText);
-
+			NoteInfo noteInfo = new NoteInfo(id, noteCourse, noteTitle, noteText);
 			dm.mNotes.add(noteInfo);
 		}
 
@@ -147,6 +151,7 @@ public class DataManager
 	{
 		mNotes.remove(index);
 	}
+
 
 	public List<CourseInfo> getCourses()
 	{
