@@ -11,6 +11,23 @@ import java.util.List;
 
 public class CourseInfo implements Parcelable
 {
+	public static final Parcelable.Creator<CourseInfo> CREATOR =
+			new Parcelable.Creator<CourseInfo>()
+			{
+
+				@RequiresApi(api = Build.VERSION_CODES.Q)
+				@Override
+				public CourseInfo createFromParcel(Parcel source)
+				{
+					return new CourseInfo(source);
+				}
+
+				@Override
+				public CourseInfo[] newArray(int size)
+				{
+					return new CourseInfo[size];
+				}
+			};
 	private final String mCourseId;
 	private final String mTitle;
 	private final List<ModuleInfo> mModules;
@@ -113,23 +130,5 @@ public class CourseInfo implements Parcelable
 		dest.writeString(mTitle);
 		dest.writeTypedList(mModules);
 	}
-
-	public static final Parcelable.Creator<CourseInfo> CREATOR =
-			new Parcelable.Creator<CourseInfo>()
-			{
-
-				@RequiresApi(api = Build.VERSION_CODES.Q)
-				@Override
-				public CourseInfo createFromParcel(Parcel source)
-				{
-					return new CourseInfo(source);
-				}
-
-				@Override
-				public CourseInfo[] newArray(int size)
-				{
-					return new CourseInfo[size];
-				}
-			};
 
 }

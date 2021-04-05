@@ -5,9 +5,25 @@ import android.os.Parcelable;
 
 public class ModuleInfo implements Parcelable
 {
+	public static final Parcelable.Creator<ModuleInfo> CREATOR =
+			new Parcelable.Creator<ModuleInfo>()
+			{
+
+				@Override
+				public ModuleInfo createFromParcel(Parcel source)
+				{
+					return new ModuleInfo(source);
+				}
+
+				@Override
+				public ModuleInfo[] newArray(int size)
+				{
+					return new ModuleInfo[size];
+				}
+			};
 	private final String mModuleId;
 	private final String mTitle;
-	private boolean mIsComplete = false;
+	private boolean mIsComplete;
 
 	public ModuleInfo(String moduleId, String title)
 	{
@@ -84,21 +100,4 @@ public class ModuleInfo implements Parcelable
 		dest.writeString(mTitle);
 		dest.writeByte((byte) (mIsComplete ? 1 : 0));
 	}
-
-	public static final Parcelable.Creator<ModuleInfo> CREATOR =
-			new Parcelable.Creator<ModuleInfo>()
-			{
-
-				@Override
-				public ModuleInfo createFromParcel(Parcel source)
-				{
-					return new ModuleInfo(source);
-				}
-
-				@Override
-				public ModuleInfo[] newArray(int size)
-				{
-					return new ModuleInfo[size];
-				}
-			};
 }

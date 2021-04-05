@@ -64,6 +64,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-contrib:3.0.2'
     androidTestImplementation 'androidx.appcompat:appcompat:1.2.0'
     androidTestImplementation "androidx.cardview:cardview:$cardview_version"
-   // androidTestImplementation 'androidx.support:design:24.2.1'
+    // androidTestImplementation 'androidx.support:design:24.2.1'
 
 }
