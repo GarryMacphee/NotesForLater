@@ -2,6 +2,7 @@ package com.my.notes.notesforlater;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,22 +10,52 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
-import java.util.List;
+import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
 
 public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapter.NoteRecyclerViewHolder>
 {
 	private final Context mContext;
-	private final List<NoteInfo> mNotes;
+	private Cursor mCursor;
 	private final LayoutInflater mLayoutInflater;
+	private int mNoteTitlePos;
+	private int mCoursePos;
+	private int mIdPos;
 
-	public NoteRecyclerAdapter(Context context, List<NoteInfo> notes)
+	public NoteRecyclerAdapter(Context context, Cursor cursor)
 	{
 		mContext = context;
-		mNotes = notes;
+		mCursor = cursor;
 		mLayoutInflater = LayoutInflater.from(mContext);
+		populateColumnPositions();
 	}
+
+
+	private void populateColumnPositions()
+	{
+		if (mCursor == null)
+			return;
+
+		mCoursePos = mCursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
+
+		mNoteTitlePos = mCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
+
+		mIdPos = mCursor.getColumnIndex(NoteInfoEntry._ID);
+
+	}
+
+
+	public void changeCursor(Cursor cursor)
+	{
+		if (mCursor != null)
+		{
+			mCursor.close();
+		}
+		mCursor = cursor;
+		populateColumnPositions();
+		notifyDataSetChanged();
+	}
+
 
 	@NonNull
 	@Override
@@ -37,38 +68,38 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
 	@Override
 	public void onBindViewHolder(@NonNull NoteRecyclerViewHolder holder, int position)
 	{
-		NoteInfo note = mNotes.get(position);
-		holder.mTextCourse.setText(note.getCourse().getTitle());
-		holder.mTextTitle.setText(note.getTitle());
-		holder.mCurrentPosition = position;
+		mCursor.moveToPosition(position);
+		String course = mCursor.getString(mCoursePos);
+		String noteTitle = mCursor.getString(mNoteTitlePos);
+		int id = mCursor.getInt(mIdPos);
+
+		holder.mTextCourse.setText(course);
+		holder.mTextTitle.setText(noteTitle);
+		holder.mId = id;
 	}
 
 	@Override
 	public int getItemCount()
 	{
-		return mNotes.size();
+		return mCursor == null ? 0 : mCursor.getCount();
 	}
 
-	public class NoteRecyclerViewHolder extends ViewHolder
+	public class NoteRecyclerViewHolder extends RecyclerView.ViewHolder
 	{
 		public final TextView mTextCourse;
 		public final TextView mTextTitle;
-		public int mCurrentPosition;
+		public int mId;
 
 		public NoteRecyclerViewHolder(@NonNull View itemView)
 		{
 			super(itemView);
 			mTextCourse = itemView.findViewById(R.id.text_title);
 			mTextTitle = itemView.findViewById(R.id.text_course);
-			itemView.setOnClickListener(new View.OnClickListener()
+			itemView.setOnClickListener(v ->
 			{
-				@Override
-				public void onClick(View v)
-				{
-					Intent intent = new Intent(mContext, NotesActivity.class);
-					intent.putExtra(NotesActivity.NOTE_POSITION, mCurrentPosition);
-					mContext.startActivity(intent);
-				}
+				Intent intent = new Intent(mContext, NotesActivity.class);
+				intent.putExtra(NotesActivity.NOTE_ID, mId);
+				mContext.startActivity(intent);
 			});
 		}
 	}

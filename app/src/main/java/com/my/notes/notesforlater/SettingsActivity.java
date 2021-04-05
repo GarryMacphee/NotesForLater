@@ -222,7 +222,7 @@ public class SettingsActivity extends PreferenceActivity
 			bindPreferenceSummaryToValue(findPreference("user_display_name"));
 			bindPreferenceSummaryToValue(findPreference("user_email_address"));
 			bindPreferenceSummaryToValue(findPreference("user_favorite_social"));
-			bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+			//bindPreferenceSummaryToValue(findPreference("sync_frequency"));
 		}
 
 		@Override

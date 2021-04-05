@@ -1,6 +1,7 @@
 package com.my.notes.notesforlater;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ public class CourseRecyclerAdapter extends RecyclerView.Adapter<CourseRecyclerAd
 	private final Context mContext;
 	private final List<CourseInfo> mCourses;
 	private final LayoutInflater mLayoutInflater;
+	private Cursor mCursor;
 
 	public CourseRecyclerAdapter(Context context, List<CourseInfo> courses)
 	{
