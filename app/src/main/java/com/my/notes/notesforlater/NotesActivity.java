@@ -2,11 +2,13 @@ package com.my.notes.notesforlater;
 
 import android.annotation.SuppressLint;
 import android.app.LoaderManager;
+import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -130,8 +132,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		}
 
 		Log.i(TAG, "mNoteId: " + mNoteId);
-		//mNote = DataManager.getInstance().getNotes().get(mNoteID);
-
 	}
 
 	private void saveOriginalNoteValues()
@@ -184,9 +184,15 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 
 	private void createNewNote()
 	{
-		DataManager dm = DataManager.getInstance();
-		mNoteId = dm.createNewNote();
-//        mNote = dm.getNotes().get(mNotePosition);
+		ContentValues values = new ContentValues();
+
+		values.put(NoteInfoEntry.COLUMN_COURSE_ID, "");
+		values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, "");
+		values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, "");
+
+		SQLiteDatabase db = mNotesForLaterDBHelper.getWritableDatabase();
+
+		mNoteId = (int) db.insert(NoteInfoEntry.TABLE_NAME, null, values);
 	}
 
 	private void displayNote()
@@ -243,7 +249,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 			Log.i(TAG, "Cancelling note at position: " + mNoteId);
 			if (mIsNewNote)
 			{
-				DataManager.getInstance().removeNote(mNoteId);
+				deleteNoteFromDatabase();
 			}
 			else
 			{
@@ -257,6 +263,28 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		Log.d(TAG, "onPause");
 	}
 
+
+	@SuppressLint("StaticFieldLeak")
+	private void deleteNoteFromDatabase()
+	{
+		final String selection = NoteInfoEntry._ID + " = ?";
+		final String[] selectionArgs = {Integer.toString(mNoteId)};
+
+
+		AsyncTask task = new AsyncTask()
+		{
+			@Override
+			protected Object doInBackground(Object[] objects)
+			{
+				SQLiteDatabase db = mNotesForLaterDBHelper.getReadableDatabase();
+				db.delete(NoteInfoEntry.TABLE_NAME, selection, selectionArgs);
+				return null;
+			}
+		};
+		task.execute();
+
+	}
+
 	private void storePreviousNoteValues()
 	{
 		CourseInfo course = DataManager.getInstance().getCourse(mOriginalNoteCourseId);
@@ -267,10 +295,44 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 
 	private void saveNote()
 	{
-		//mNote.setCourse((CourseInfo) mSpinnerCourses.getSelectedItem());
-		//mNote.setTitle(mTextNoteTitle.getText().toString());
-		//mNote.setText(mTextNoteText.getText().toString());
+		String courseId = selectCourseId();
+		String noteTitle = mTextNoteTitle.getText().toString();
+		String noteText = mTextNoteText.getText().toString();
+		saveNoteToDatabase(courseId, noteTitle, noteText);
 	}
+
+
+	private String selectCourseId()
+	{
+		Cursor cursor = mAdapterCourses.getCursor();
+		cursor.moveToPosition(mSpinnerCourses.getSelectedItemPosition());
+		int courseIdPos = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_ID);
+
+		return cursor.getString(courseIdPos);
+	}
+
+
+	public void insertNewNote()
+	{
+
+	}
+
+
+	private void saveNoteToDatabase(String courseId, String noteTitle, String noteText)
+	{
+		String selection = NoteInfoEntry._ID + " = ?";
+		String[] selectionArgs = {Integer.toString(mNoteId)};
+
+		ContentValues values = new ContentValues();
+		values.put(NoteInfoEntry.COLUMN_COURSE_ID, courseId);
+		values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, noteText);
+		values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, noteTitle);
+
+		SQLiteDatabase db = mNotesForLaterDBHelper.getReadableDatabase();
+
+		db.update(NoteInfoEntry.TABLE_NAME, values, selection, selectionArgs);
+	}
+
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
@@ -413,7 +475,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 				String titleStart = "dynamic";
 
 				String selection = NoteInfoEntry._ID + " = ?";
-
 				String[] selectionArgs = {Integer.toString(mNoteId)};
 
 				String[] noteColumns = {

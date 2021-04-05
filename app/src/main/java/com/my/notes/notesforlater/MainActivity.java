@@ -36,6 +36,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
+import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.CourseInfoEntry;
 import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor>
@@ -283,17 +284,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				{
 					SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
 
-					String[] noteColumns = {
-							NoteInfoEntry._ID,
+					final String[] noteColumns = {
+							NoteInfoEntry.getQName(NoteInfoEntry._ID),
 							NoteInfoEntry.COLUMN_NOTE_TITLE,
-							NoteInfoEntry.COLUMN_COURSE_ID
+							CourseInfoEntry.COLUMN_COURSE_TITLE
 					};
 
-					final String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+					final String noteOrderBy = CourseInfoEntry.COLUMN_COURSE_TITLE + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
 
-					return db
-							.query(NoteInfoEntry.TABLE_NAME, noteColumns, null, null, null, null, noteOrderBy);
+					// note_info JOIN course_info ON note_info.course_id = course_info.course_id
+					String tablesWithJoin = NoteInfoEntry.TABLE_NAME + " JOIN " +
+							CourseInfoEntry.TABLE_NAME + " ON " +
+							NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_COURSE_ID) + " = " +
+							CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_ID);
 
+					return db.query(tablesWithJoin, noteColumns,
+							null, null, null, null, noteOrderBy);
 				}
 			};
 		}

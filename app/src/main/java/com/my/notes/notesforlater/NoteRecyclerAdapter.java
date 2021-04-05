@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.CourseInfoEntry;
 import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
 
 public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapter.NoteRecyclerViewHolder>
@@ -36,12 +37,9 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
 		if (mCursor == null)
 			return;
 
-		mCoursePos = mCursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
-
+		mCoursePos = mCursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_TITLE);
 		mNoteTitlePos = mCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
-
 		mIdPos = mCursor.getColumnIndex(NoteInfoEntry._ID);
-
 	}
 
 
@@ -73,8 +71,8 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
 		String noteTitle = mCursor.getString(mNoteTitlePos);
 		int id = mCursor.getInt(mIdPos);
 
-		holder.mTextCourse.setText(course);
-		holder.mTextTitle.setText(noteTitle);
+		holder.mTextCourse.setText(noteTitle);
+		holder.mTextTitle.setText(course);
 		holder.mId = id;
 	}
 
@@ -93,8 +91,8 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
 		public NoteRecyclerViewHolder(@NonNull View itemView)
 		{
 			super(itemView);
-			mTextCourse = itemView.findViewById(R.id.text_title);
-			mTextTitle = itemView.findViewById(R.id.text_course);
+			mTextTitle = itemView.findViewById(R.id.text_title);
+			mTextCourse = itemView.findViewById(R.id.text_course);
 			itemView.setOnClickListener(v ->
 			{
 				Intent intent = new Intent(mContext, NotesActivity.class);

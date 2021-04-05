@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
 public class NotesForLaterDBHelper extends SQLiteOpenHelper
 {
 	public static final String DATABASE_NAME = "NotesForLater.db";
-	public static final int DATABASE_VERSION = 1;
+	public static final int DATABASE_VERSION = 2;
 
 	public NotesForLaterDBHelper(@Nullable Context context)
 	{
@@ -23,6 +23,9 @@ public class NotesForLaterDBHelper extends SQLiteOpenHelper
 		db.execSQL(NotesForLaterDatabaseContract.CourseInfoEntry.SQL_CREATE_TABLE);
 		db.execSQL(NotesForLaterDatabaseContract.NoteInfoEntry.SQL_CREATE_TABLE);
 
+		db.execSQL(NotesForLaterDatabaseContract.CourseInfoEntry.SQL_CREATE_INDEX1);
+		db.execSQL(NotesForLaterDatabaseContract.NoteInfoEntry.SQL_CREATE_INDEX1);
+
 		DatabaseDataWorker worker = new DatabaseDataWorker(db);
 		worker.insertCourses();
 		worker.insertSampleNotes();
@@ -31,6 +34,10 @@ public class NotesForLaterDBHelper extends SQLiteOpenHelper
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
 	{
-
+		if (oldVersion < 2)
+		{
+			db.execSQL((NotesForLaterDatabaseContract.CourseInfoEntry.SQL_CREATE_INDEX1));
+			db.execSQL((NotesForLaterDatabaseContract.NoteInfoEntry.SQL_CREATE_INDEX1));
+		}
 	}
 }
