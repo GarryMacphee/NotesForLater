@@ -1,10 +1,13 @@
 package com.my.notes.notesforlater;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.GridLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -13,6 +16,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.ui.AppBarConfiguration;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private RecyclerView mRecyclerView;
 	private CourseRecyclerAdapter mMCourseRecyclerAdapter;
 	private GridLayoutManager mGridLayoutManager;
+	private NotesForLaterDBHelper mDbOpenHelper;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -40,11 +45,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
+		mDbOpenHelper = new NotesForLaterDBHelper(this);
+
 		FloatingActionButton fab = findViewById(R.id.fab);
 		fab.setOnClickListener(view ->
 		{
 			startActivity(new Intent(MainActivity.this, NotesActivity.class));
 		});
+
+		PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
+		PreferenceManager.setDefaultValues(this, R.xml.pref_notification, false);
+		PreferenceManager.setDefaultValues(this, R.xml.pref_data_sync, false);
 
 		DrawerLayout drawer = findViewById(R.id.drawer_layout);
 		ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -58,12 +69,49 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		initializeDisplayContent();
 	}
 
+	private void initializeDisplayContent()
+	{
+		DataManager.loadFromDatabase(mDbOpenHelper);
 
-	private void selectNavigationMenuItem(int id)
+		mRecyclerView = findViewById(R.id.list_items_recycler);
+		mLinearLayoutManager = new LinearLayoutManager(this);
+		mGridLayoutManager = new GridLayoutManager(this,
+				getResources().getInteger(R.integer.course_grid_span));
+
+		GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(
+				GridLayout.spec(GridLayout.UNDEFINED, 1f),
+				GridLayout.spec(GridLayout.UNDEFINED, 1f));
+
+
+		List<NoteInfo> notes = DataManager.getInstance().getNotes();
+		mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, notes);
+
+		List<CourseInfo> courses = DataManager.getInstance().getCourses();
+		mMCourseRecyclerAdapter = new CourseRecyclerAdapter(this, courses);
+
+		displayNotes();
+	}
+
+	private void displayNotes()
+	{
+		mRecyclerView.setLayoutManager(mLinearLayoutManager);
+		mRecyclerView.setAdapter(mNoteRecyclerAdapter);
+
+		selectNavigationItem(R.id.nav_notes);
+	}
+
+	private void selectNavigationItem(int id)
 	{
 		NavigationView navigationView = findViewById(R.id.nav_view);
 		Menu menu = navigationView.getMenu();
 		menu.findItem(id).setChecked(true);
+	}
+
+	@Override
+	protected void onDestroy()
+	{
+		mDbOpenHelper.close();
+		super.onDestroy();
 	}
 
 	@Override
@@ -86,45 +134,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		super.onResume();
 		mNoteRecyclerAdapter.notifyDataSetChanged();
+		updateNavHeader();
 	}
 
-
-	private void initializeDisplayContent()
+	private void updateNavHeader()
 	{
-		mRecyclerView = findViewById(R.id.list_items_recycler);
-		mLinearLayoutManager = new LinearLayoutManager(this);
-		mGridLayoutManager = new GridLayoutManager(this, 2);
+		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+		View headerView = navigationView.getHeaderView(0);
+		TextView textUserName = (TextView) headerView.findViewById(R.id.text_user_name);
+		TextView textEmailAddress = (TextView) headerView.findViewById(R.id.text_email_address);
 
-		List<NoteInfo> notes = DataManager.getInstance().getNotes();
-		mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, notes);
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+		String userName = pref.getString("user_display_name", "");
+		String emailAddress = pref.getString("user_email_address", "");
 
-		List<CourseInfo> courses = DataManager.getInstance().getCourses();
-		mMCourseRecyclerAdapter = new CourseRecyclerAdapter(this, courses);
-
-		displayNotes();
-	}
-
-	private void displayCourses()
-	{
-		mRecyclerView.setLayoutManager(mGridLayoutManager);
-		mRecyclerView.setAdapter(mMCourseRecyclerAdapter);
-		selectNavigationItem(R.id.nav_courses);
-	}
-
-
-	private void displayNotes()
-	{
-		mRecyclerView.setLayoutManager(mLinearLayoutManager);
-		mRecyclerView.setAdapter(mNoteRecyclerAdapter);
-
-		selectNavigationItem(R.id.nav_notes);
-	}
-
-	private void selectNavigationItem(int id)
-	{
-		NavigationView navigationView = findViewById(R.id.nav_view);
-		Menu menu = navigationView.getMenu();
-		menu.findItem(id).setChecked(true);
+		textUserName.setText(userName);
+		textEmailAddress.setText(emailAddress);
 	}
 
 	@Override
@@ -146,19 +171,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		//noinspection SimplifiableIfStatement
 		if (id == R.id.action_settings)
 		{
+			startActivity(new Intent(this, SettingsActivity.class));
 			return true;
 		}
 
 		return super.onOptionsItemSelected(item);
 	}
-
-	/*@Override
-	public boolean onSupportNavigateUp()
-	{
-		NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-		return NavigationUI.navigateUp(navController, mAppBarConfiguration)
-				|| super.onSupportNavigateUp();
-	}*/
 
 	@Override
 	public boolean onNavigationItemSelected(@NonNull MenuItem item)
@@ -187,6 +205,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		return true;
 	}
 
+	/*@Override
+	public boolean onSupportNavigateUp()
+	{
+		NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+		return NavigationUI.navigateUp(navController, mAppBarConfiguration)
+				|| super.onSupportNavigateUp();
+	}*/
+
+	private void displayCourses()
+	{
+		mRecyclerView.setLayoutManager(mGridLayoutManager);
+		mRecyclerView.setAdapter(mMCourseRecyclerAdapter);
+		selectNavigationItem(R.id.nav_courses);
+	}
 
 	private void handleSelection(String message)
 	{

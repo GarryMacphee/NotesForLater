@@ -5,6 +5,22 @@ import android.os.Parcelable;
 
 public class NoteInfo implements Parcelable
 {
+	public final static Parcelable.Creator<NoteInfo> CREATOR =
+			new Parcelable.Creator<NoteInfo>()
+			{
+
+				@Override
+				public NoteInfo createFromParcel(Parcel source)
+				{
+					return new NoteInfo(source);
+				}
+
+				@Override
+				public NoteInfo[] newArray(int size)
+				{
+					return new NoteInfo[size];
+				}
+			};
 	private CourseInfo mCourse;
 	private String mTitle;
 	private String mText;
@@ -53,11 +69,6 @@ public class NoteInfo implements Parcelable
 		mText = text;
 	}
 
-	private String getCompareKey()
-	{
-		return mCourse.getCourseId() + "|" + mTitle + "|" + mText;
-	}
-
 	@Override
 	public boolean equals(Object o)
 	{
@@ -67,6 +78,11 @@ public class NoteInfo implements Parcelable
 		NoteInfo that = (NoteInfo) o;
 
 		return getCompareKey().equals(that.getCompareKey());
+	}
+
+	private String getCompareKey()
+	{
+		return mCourse.getCourseId() + "|" + mTitle + "|" + mText;
 	}
 
 	@Override
@@ -94,21 +110,4 @@ public class NoteInfo implements Parcelable
 		dest.writeString(mTitle);
 		dest.writeString(mText);
 	}
-
-	public final static Parcelable.Creator<NoteInfo> CREATOR =
-			new Parcelable.Creator<NoteInfo>()
-			{
-
-				@Override
-				public NoteInfo createFromParcel(Parcel source)
-				{
-					return new NoteInfo(source);
-				}
-
-				@Override
-				public NoteInfo[] newArray(int size)
-				{
-					return new NoteInfo[size];
-				}
-			};
 }
