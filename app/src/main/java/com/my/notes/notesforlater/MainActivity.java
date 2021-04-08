@@ -46,9 +46,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private LinearLayoutManager mLinearLayoutManager;
 	private RecyclerView mRecyclerView;
 	private CourseRecyclerAdapter mMCourseRecyclerAdapter;
-	private GridLayoutManager mGridLayoutManager;
 	private NotesForLaterDBHelper mDbOpenHelper;
 	public static final int LOADER_NOTES = 0;
+	private GridLayoutManager mMGridLayoutManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		mRecyclerView = findViewById(R.id.list_items_recycler);
 		mLinearLayoutManager = new LinearLayoutManager(this);
-		mGridLayoutManager = new GridLayoutManager(this, getResources()
+		mMGridLayoutManager = new GridLayoutManager(this, getResources()
 				.getInteger(R.integer.course_grid_span));
 
 		GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(GridLayout
@@ -259,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void displayCourses()
 	{
-		mRecyclerView.setLayoutManager(mGridLayoutManager);
+		mRecyclerView.setLayoutManager(mMGridLayoutManager);
 		mRecyclerView.setAdapter(mMCourseRecyclerAdapter);
 		selectNavigationItem(R.id.nav_courses);
 	}

@@ -11,6 +11,15 @@
 		android:roundIcon="@mipmap/ic_launcher"
 		android:supportsRtl="true"
 		android:theme="@style/AppTheme">
+
+		<provider
+			android:name=".NotesProvider"
+			android:authorities="com.my.notes.notesforlater.provider"
+			android:enabled="true"
+			android:exported="true">
+
+		</provider>
+
 		<activity
 			android:name=".SettingsActivity"
 			android:label="@string/title_activity_settings" />

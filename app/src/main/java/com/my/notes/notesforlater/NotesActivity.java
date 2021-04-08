@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -342,6 +343,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 			mViewModel.saveState(outState);
 	}
 
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
@@ -349,6 +351,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		getMenuInflater().inflate(R.menu.menu_note, menu);
 		return true;
 	}
+
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
@@ -378,6 +381,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		return super.onOptionsItemSelected(item);
 	}
 
+
 	private void sendEmail()
 	{
 		CourseInfo course = (CourseInfo) mSpinnerCourses.getSelectedItem();
@@ -391,6 +395,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		startActivity(intent);
 	}
 
+
 	private void moveNext()
 	{
 		saveNote();
@@ -402,6 +407,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		displayNote();
 		invalidateOptionsMenu();
 	}
+
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu)
@@ -431,31 +437,20 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		return loader;
 	}
 
-	@SuppressLint("StaticFieldLeak")
+
 	private CursorLoader createLoaderCourses()
 	{
 		mCoursesQueryFinished = false;
 
-		return new CursorLoader(this)
-		{
-			@Override
-			public Cursor loadInBackground()
-			{
-				SQLiteDatabase db = mNotesForLaterDBHelper.getReadableDatabase();
+		//Uri uri = Uri.parse("content://com.my.notes.notesforlater.provider");
+		Uri uri = NotesForLaterProviderContract.Courses.CONTENT_URI;
 
-				String[] courseColumns = {
-						CourseInfoEntry.COLUMN_COURSE_TITLE,
-						CourseInfoEntry.COLUMN_COURSE_ID,
-						CourseInfoEntry._ID
-				};
-
-				return db
-						.query(CourseInfoEntry.TABLE_NAME, courseColumns, null, null, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
-
-
-			}
+		String[] courseColumns = {
+				NotesForLaterProviderContract.Courses.COLUMN_COURSE_TITLE,
+				NotesForLaterProviderContract.Courses.COLUMNS_COURSES_ID,
+				NotesForLaterProviderContract.Courses._ID
 		};
-
+		return new CursorLoader(this, uri, courseColumns, null, null, NotesForLaterProviderContract.Courses.COLUMN_COURSE_TITLE);
 	}
 
 
@@ -519,6 +514,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		mNoteTextPos = mCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT);
 
 		mCursor.moveToNext();
+
 		mNotesQueryFinished = true;
 		//displayNote();
 		displayNoteWhenQueryFinished();
