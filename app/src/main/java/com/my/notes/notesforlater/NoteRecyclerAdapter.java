@@ -31,7 +31,6 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
 		populateColumnPositions();
 	}
 
-
 	private void populateColumnPositions()
 	{
 		if (mCursor == null)
@@ -41,7 +40,6 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
 		mNoteTitlePos = mCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
 		mIdPos = mCursor.getColumnIndex(NoteInfoEntry._ID);
 	}
-
 
 	public void changeCursor(Cursor cursor)
 	{
@@ -53,7 +51,6 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
 		populateColumnPositions();
 		notifyDataSetChanged();
 	}
-
 
 	@NonNull
 	@Override

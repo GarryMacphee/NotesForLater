@@ -9,6 +9,10 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.StrictMode;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,7 +40,6 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.CourseInfoEntry;
 import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor>
@@ -57,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		setContentView(R.layout.activity_main);
 		Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
+
+		enableStrictMode();
 
 		mDbOpenHelper = new NotesForLaterDBHelper(this);
 
@@ -82,6 +87,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		initializeDisplayContent();
 	}
 
+
+	private void enableStrictMode()
+	{
+		if (BuildConfig.DEBUG)
+		{
+			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+					.detectAll()
+					.penaltyLog()
+					.build();
+			StrictMode.setThreadPolicy(policy);
+		}
+	}
+
+
 	private void initializeDisplayContent()
 	{
 		DataManager.loadFromDatabase(mDbOpenHelper);
@@ -102,7 +121,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		displayNotes();
 	}
 
-
 	private void displayNotes()
 	{
 		mRecyclerView.setLayoutManager(mLinearLayoutManager);
@@ -110,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		selectNavigationItem(R.id.nav_notes);
 	}
-
 
 	private void selectNavigationItem(int id)
 	{
@@ -125,7 +142,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		mDbOpenHelper.close();
 		super.onDestroy();
 	}
-
 
 	@Override
 	public void onBackPressed()
@@ -150,8 +166,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		getLoaderManager().restartLoader(LOADER_NOTES, null, this);
 
 		updateNavHeader();
+
+		//openDrawer();
 	}
 
+	@SuppressLint("WrongConstant")
+	private void openDrawer()
+	{
+		Handler handler = new Handler(Looper.getMainLooper());
+
+		handler.postDelayed(() ->
+		{
+			DrawerLayout drawer = findViewById(R.id.drawer_layout);
+			drawer.openDrawer(Gravity.START);
+		}, 1000);
+	}
 
 	private void loadNotes()
 	{
@@ -170,7 +199,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		mNoteRecyclerAdapter.changeCursor(noteCursor);
 	}
-
 
 	private void updateNavHeader()
 	{
@@ -210,7 +238,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			return true;
 		}
 
+		if (id == R.id.action_backup_notes)
+		{
+			backupNotes();
+		}
+
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void backupNotes()
+	{
+		Intent intent = new Intent(this, NotesBackupService.class);
+		intent.putExtra(NotesBackupService.EXTRA_COURSE_ID, NoteBackup.ALL_COURSES);
+		startService(intent);
 	}
 
 	@Override
@@ -256,7 +296,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				Snackbar.LENGTH_LONG).show();
 	}
 
-
 	private void displayCourses()
 	{
 		mRecyclerView.setLayoutManager(mMGridLayoutManager);
@@ -277,36 +316,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		CursorLoader loader = null;
 		if (id == LOADER_NOTES)
 		{
-			loader = new CursorLoader(this)
-			{
-				@Override
-				public Cursor loadInBackground()
-				{
-					SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
-
-					final String[] noteColumns = {
-							NoteInfoEntry.getQName(NoteInfoEntry._ID),
-							NoteInfoEntry.COLUMN_NOTE_TITLE,
-							CourseInfoEntry.COLUMN_COURSE_TITLE
-					};
-
-					final String noteOrderBy = CourseInfoEntry.COLUMN_COURSE_TITLE + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
-
-					// note_info JOIN course_info ON note_info.course_id = course_info.course_id
-					String tablesWithJoin = NoteInfoEntry.TABLE_NAME + " JOIN " +
-							CourseInfoEntry.TABLE_NAME + " ON " +
-							NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_COURSE_ID) + " = " +
-							CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_ID);
-
-					return db.query(tablesWithJoin, noteColumns,
-							null, null, null, null, noteOrderBy);
-				}
+			final String[] noteColumns = {
+					NotesForLaterProviderContract.Notes._ID,
+					NotesForLaterProviderContract.Notes.COLUMN_NOTE_TITLE,
+					NotesForLaterProviderContract.Notes.COLUMN_COURSE_TITLE
 			};
-		}
 
+			final String noteOrderBy = NotesForLaterProviderContract.Notes.COLUMN_COURSE_TITLE + "," + NotesForLaterProviderContract.Notes.COLUMN_NOTE_TITLE;
+
+			loader = new CursorLoader(this, NotesForLaterProviderContract.Notes.CONTENT_EXPANDED_URI,
+					noteColumns, null, null, noteOrderBy);
+
+		}
 		return loader;
 	}
-
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor data)

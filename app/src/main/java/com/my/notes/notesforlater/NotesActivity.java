@@ -2,6 +2,7 @@ package com.my.notes.notesforlater;
 
 import android.annotation.SuppressLint;
 import android.app.LoaderManager;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -14,13 +15,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.CourseInfoEntry;
 import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
@@ -54,6 +59,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 	private SimpleCursorAdapter mAdapterCourses;
 	private boolean mCoursesQueryFinished;
 	private boolean mNotesQueryFinished;
+	private Uri mNoteUri;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -122,6 +128,15 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		mAdapterCourses.changeCursor(cursor);
 	}
 
+
+	private void showReminderNotification()
+	{
+		String noteTitle = mTextNoteTitle.getText().toString();
+		String noteText = mTextNoteText.getText().toString();
+		int noteId = (int) ContentUris.parseId(mNoteUri);
+		NoteReminderNotification.notify(this, noteTitle, noteText, noteId);
+	}
+
 	private void readDisplayStateValues()
 	{
 		Intent intent = getIntent();
@@ -132,7 +147,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 			createNewNote();
 		}
 
-		Log.i(TAG, "mNoteId: " + mNoteId);
+		//Log.i(TAG, "mNoteId: " + mNoteId);
 	}
 
 	private void saveOriginalNoteValues()
@@ -183,17 +198,93 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		displayNote();
 	}
 
+	@SuppressLint("StaticFieldLeak")
 	private void createNewNote()
 	{
+		AsyncTask<ContentValues, Integer, Uri> task = new AsyncTask<ContentValues, Integer, Uri>()
+		{
+			private ProgressBar mProgressBar;
+
+			@Override
+			protected void onPreExecute()
+			{
+				mProgressBar = findViewById(R.id.mProgressBar);
+				mProgressBar.setVisibility(View.VISIBLE);
+				mProgressBar.setProgress(1);
+			}
+
+			@Override
+			protected Uri doInBackground(ContentValues... params)
+			{
+				Log.d(TAG, "Call to execute - thread: " + Thread.currentThread().getId());
+				ContentValues insertValues = params[0];
+				Uri rowUri = getContentResolver()
+						.insert(NotesForLaterProviderContract.Notes.CONTENT_URI, insertValues);
+
+				simulateLongRunningWork();
+				publishProgress(2);
+				simulateLongRunningWork();
+				publishProgress(3);
+
+				return rowUri;
+			}
+
+			@Override
+			protected void onProgressUpdate(Integer... values)
+			{
+				int progressValue = values[0];
+				mProgressBar.setProgress(progressValue);
+			}
+
+
+			@Override
+			protected void onPostExecute(Uri uri)
+			{
+				Log.d(TAG, "Call to execute - thread: " + Thread.currentThread().getId());
+				mNoteUri = uri;
+				mProgressBar.setVisibility(View.GONE);
+				displaySnackBar(mNoteUri.toString());
+			}
+		};
+
 		ContentValues values = new ContentValues();
 
-		values.put(NoteInfoEntry.COLUMN_COURSE_ID, "");
-		values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, "");
-		values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, "");
+		values.put(NotesForLaterProviderContract.Notes.COLUMNS_COURSES_ID, "");
+		values.put(NotesForLaterProviderContract.Notes.COLUMN_NOTE_TITLE, "");
+		values.put(NotesForLaterProviderContract.Notes.COLUMN_NOTE_TEXT, "");
 
-		SQLiteDatabase db = mNotesForLaterDBHelper.getWritableDatabase();
+		Log.d(TAG, "Call to execute - thread: " + Thread.currentThread().getId());
 
-		mNoteId = (int) db.insert(NoteInfoEntry.TABLE_NAME, null, values);
+		task.execute(values);
+
+		/*final Handler handler = new Handler();
+		handler.post(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				mNoteUri = NotesActivity.this.getContentResolver().
+						insert(NotesForLaterProviderContract.Notes.CONTENT_URI, values);
+			}
+		});*/
+
+	}
+
+	private void simulateLongRunningWork()
+	{
+		try
+		{
+			Thread.sleep(2000);
+		} catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private void displaySnackBar(String message)
+	{
+		View view = findViewById(R.id.spinner_courses);
+		Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
 	}
 
 	private void displayNote()
@@ -264,7 +355,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		Log.d(TAG, "onPause");
 	}
 
-
 	@SuppressLint("StaticFieldLeak")
 	private void deleteNoteFromDatabase()
 	{
@@ -302,6 +392,15 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		saveNoteToDatabase(courseId, noteTitle, noteText);
 	}
 
+	private String selectedCourseId()
+	{
+		int selectedPosition = mSpinnerCourses.getSelectedItemPosition();
+		Cursor cursor = mAdapterCourses.getCursor();
+		cursor.moveToPosition(selectedPosition);
+		int courseIdPos = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_ID);
+		String courseId = cursor.getString(courseIdPos);
+		return courseId;
+	}
 
 	private String selectCourseId()
 	{
@@ -312,28 +411,15 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		return cursor.getString(courseIdPos);
 	}
 
-
-	public void insertNewNote()
-	{
-
-	}
-
-
 	private void saveNoteToDatabase(String courseId, String noteTitle, String noteText)
 	{
-		String selection = NoteInfoEntry._ID + " = ?";
-		String[] selectionArgs = {Integer.toString(mNoteId)};
-
 		ContentValues values = new ContentValues();
-		values.put(NoteInfoEntry.COLUMN_COURSE_ID, courseId);
-		values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, noteText);
-		values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, noteTitle);
+		values.put(NotesForLaterProviderContract.Notes.COLUMNS_COURSES_ID, courseId);
+		values.put(NotesForLaterProviderContract.Notes.COLUMN_NOTE_TITLE, noteTitle);
+		values.put(NotesForLaterProviderContract.Notes.COLUMN_NOTE_TEXT, noteText);
 
-		SQLiteDatabase db = mNotesForLaterDBHelper.getReadableDatabase();
-
-		db.update(NoteInfoEntry.TABLE_NAME, values, selection, selectionArgs);
+		getContentResolver().update(mNoteUri, values, null, null);
 	}
-
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
@@ -343,7 +429,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 			mViewModel.saveState(outState);
 	}
 
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
@@ -351,7 +436,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		getMenuInflater().inflate(R.menu.menu_note, menu);
 		return true;
 	}
-
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
@@ -377,10 +461,13 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 			moveNext();
 			return true;
 		}
+		else if (id == R.id.action_set_reminder)
+		{
+			showReminderNotification();
+		}
 
 		return super.onOptionsItemSelected(item);
 	}
-
 
 	private void sendEmail()
 	{
@@ -395,7 +482,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		startActivity(intent);
 	}
 
-
 	private void moveNext()
 	{
 		saveNote();
@@ -408,7 +494,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		invalidateOptionsMenu();
 	}
 
-
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu)
 	{
@@ -418,7 +503,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		item.setEnabled(mNoteId < lastNoteIndex);
 		return super.onPrepareOptionsMenu(menu);
 	}
-
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args)
@@ -437,7 +521,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		return loader;
 	}
 
-
 	private CursorLoader createLoaderCourses()
 	{
 		mCoursesQueryFinished = false;
@@ -453,41 +536,20 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		return new CursorLoader(this, uri, courseColumns, null, null, NotesForLaterProviderContract.Courses.COLUMN_COURSE_TITLE);
 	}
 
-
 	@SuppressLint("StaticFieldLeak")
 	private CursorLoader createLoaderNotes()
 	{
 		mNotesQueryFinished = false;
 
-		return new CursorLoader(this)
-		{
-			@Override
-			public Cursor loadInBackground()
-			{
-				SQLiteDatabase db = mNotesForLaterDBHelper.getReadableDatabase();
-
-				String courseId = "android_intents";
-				String titleStart = "dynamic";
-
-				String selection = NoteInfoEntry._ID + " = ?";
-				String[] selectionArgs = {Integer.toString(mNoteId)};
-
-				String[] noteColumns = {
-						NoteInfoEntry.COLUMN_COURSE_ID,
-						NoteInfoEntry.COLUMN_NOTE_TITLE,
-						NoteInfoEntry.COLUMN_NOTE_TEXT
-				};
-
-				return db.query(NoteInfoEntry.TABLE_NAME,
-						noteColumns,
-						selection,
-						selectionArgs,
-						null, null, null
-				);
-
-			}
+		String[] noteColumns = {
+				NotesForLaterProviderContract.Notes.COLUMNS_COURSES_ID,
+				NotesForLaterProviderContract.Notes.COLUMN_NOTE_TITLE,
+				NotesForLaterProviderContract.Notes.COLUMN_NOTE_TEXT
 		};
+		mNoteUri = ContentUris
+				.withAppendedId(NotesForLaterProviderContract.Notes.CONTENT_URI, mNoteId);
 
+		return new CursorLoader(this, mNoteUri, noteColumns, null, null, null);
 	}
 
 	@Override
