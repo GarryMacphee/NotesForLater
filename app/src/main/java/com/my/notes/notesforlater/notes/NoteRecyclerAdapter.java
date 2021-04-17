@@ -1,4 +1,4 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.notes;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,8 +11,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.CourseInfoEntry;
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
+import com.my.notes.notesforlater.R;
+
+import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.CourseInfoEntry;
+import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.NoteInfoEntry;
 
 public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapter.NoteRecyclerViewHolder>
 {

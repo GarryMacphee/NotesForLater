@@ -1,4 +1,4 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.broadcastreceivers;
 
 import android.content.Context;
 import android.content.Intent;

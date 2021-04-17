@@ -1,4 +1,4 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.data;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;

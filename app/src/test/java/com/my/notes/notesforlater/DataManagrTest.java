@@ -1,5 +1,9 @@
 package com.my.notes.notesforlater;
 
+import com.my.notes.notesforlater.courses.CourseInfo;
+import com.my.notes.notesforlater.data.DataManager;
+import com.my.notes.notesforlater.notes.NoteInfo;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;

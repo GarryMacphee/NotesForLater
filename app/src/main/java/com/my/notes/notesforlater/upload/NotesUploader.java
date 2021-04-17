@@ -1,9 +1,11 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.upload;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
+
+import com.my.notes.notesforlater.data.NotesForLaterProviderContract;
 
 public class NotesUploader
 {

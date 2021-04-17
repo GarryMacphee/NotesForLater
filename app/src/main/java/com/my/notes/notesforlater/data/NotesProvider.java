@@ -1,4 +1,4 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.data;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
@@ -10,8 +10,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.CourseInfoEntry;
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
+import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.CourseInfoEntry;
+import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.NoteInfoEntry;
 
 public class NotesProvider extends ContentProvider
 {

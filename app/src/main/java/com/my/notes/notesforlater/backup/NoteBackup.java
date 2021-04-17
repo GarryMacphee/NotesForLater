@@ -1,8 +1,10 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.backup;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
+
+import com.my.notes.notesforlater.data.NotesForLaterProviderContract;
 
 public class NoteBackup
 {

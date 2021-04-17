@@ -42,10 +42,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+import com.my.notes.notesforlater.backup.NoteBackup;
+import com.my.notes.notesforlater.backup.NotesBackupService;
+import com.my.notes.notesforlater.broadcastreceivers.CourseEventsReceiver;
+import com.my.notes.notesforlater.courses.CourseInfo;
+import com.my.notes.notesforlater.courses.CourseRecyclerAdapter;
+import com.my.notes.notesforlater.data.DataManager;
+import com.my.notes.notesforlater.data.NotesForLaterDBHelper;
+import com.my.notes.notesforlater.data.NotesForLaterProviderContract;
+import com.my.notes.notesforlater.notes.NoteRecyclerAdapter;
+import com.my.notes.notesforlater.notes.NotesActivity;
+import com.my.notes.notesforlater.settings.SettingsActivity;
+import com.my.notes.notesforlater.upload.NoteUploaderJobService;
 
 import java.util.List;
 
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
+import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.NoteInfoEntry;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor>, CourseEventDisplayCallback
 {

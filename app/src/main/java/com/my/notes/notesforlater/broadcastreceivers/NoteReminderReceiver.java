@@ -1,8 +1,10 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.broadcastreceivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import com.my.notes.notesforlater.notifications.NoteReminderNotification;
 
 public class NoteReminderReceiver extends BroadcastReceiver
 {

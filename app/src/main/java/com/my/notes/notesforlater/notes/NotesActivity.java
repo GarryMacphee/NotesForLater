@@ -1,4 +1,4 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.notes;
 
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
@@ -29,9 +29,16 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.my.notes.notesforlater.R;
+import com.my.notes.notesforlater.broadcastreceivers.CourseEventBroadcastHelper;
+import com.my.notes.notesforlater.broadcastreceivers.NoteReminderReceiver;
+import com.my.notes.notesforlater.courses.CourseInfo;
+import com.my.notes.notesforlater.data.DataManager;
+import com.my.notes.notesforlater.data.NotesForLaterDBHelper;
+import com.my.notes.notesforlater.data.NotesForLaterProviderContract;
 
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.CourseInfoEntry;
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
+import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.CourseInfoEntry;
+import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.NoteInfoEntry;
 
 public class NotesActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
 {

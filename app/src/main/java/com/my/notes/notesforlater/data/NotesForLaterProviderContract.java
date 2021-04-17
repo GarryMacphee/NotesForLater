@@ -1,4 +1,4 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.data;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -14,7 +14,7 @@ public final class NotesForLaterProviderContract
 	public static final Uri AUTHORITY_URI = Uri.parse("content://" + AUTHORITY);
 
 
-	protected interface CoursesIdColumns
+	public interface CoursesIdColumns
 	{
 		String COLUMNS_COURSES_ID = "course_id";
 	}

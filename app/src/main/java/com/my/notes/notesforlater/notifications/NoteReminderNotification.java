@@ -1,4 +1,4 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.notifications;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -13,6 +13,12 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
 import androidx.core.app.NotificationCompat;
+
+import com.my.notes.notesforlater.MainActivity;
+import com.my.notes.notesforlater.R;
+import com.my.notes.notesforlater.backup.NoteBackup;
+import com.my.notes.notesforlater.backup.NotesBackupService;
+import com.my.notes.notesforlater.notes.NotesActivity;
 
 public class NoteReminderNotification
 {

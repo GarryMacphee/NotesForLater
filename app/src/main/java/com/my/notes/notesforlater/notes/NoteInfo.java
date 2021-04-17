@@ -1,7 +1,9 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.notes;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import com.my.notes.notesforlater.courses.CourseInfo;
 
 public class NoteInfo implements Parcelable
 {

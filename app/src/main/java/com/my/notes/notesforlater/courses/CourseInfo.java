@@ -1,10 +1,12 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.courses;
 
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.RequiresApi;
+
+import com.my.notes.notesforlater.data.ModuleInfo;
 
 import java.util.ArrayList;
 import java.util.List;
