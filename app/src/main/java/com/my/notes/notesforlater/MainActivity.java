@@ -2,6 +2,9 @@ package com.my.notes.notesforlater;
 
 import android.annotation.SuppressLint;
 import android.app.LoaderManager;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -11,7 +14,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.StrictMode;
+import android.os.PersistableBundle;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -44,6 +47,7 @@ import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoE
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor>
 {
+	public static final int NOTE_UPLOADER_JOB_ID = 1;
 	private NoteRecyclerAdapter mNoteRecyclerAdapter;
 	private AppBarConfiguration mAppBarConfiguration;
 	private LinearLayoutManager mLinearLayoutManager;
@@ -90,14 +94,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void enableStrictMode()
 	{
-		if (BuildConfig.DEBUG)
+		/*if (BuildConfig.DEBUG)
 		{
 			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
 					.detectAll()
 					.penaltyLog()
 					.build();
 			StrictMode.setThreadPolicy(policy);
-		}
+		}*/
 	}
 
 
@@ -200,6 +204,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		mNoteRecyclerAdapter.changeCursor(noteCursor);
 	}
 
+
 	private void updateNavHeader()
 	{
 		NavigationView navigationView = findViewById(R.id.nav_view);
@@ -243,7 +248,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			backupNotes();
 		}
 
+		if (id == R.id.action_upload_notes)
+		{
+			scheduleNotesUpload();
+		}
+
 		return super.onOptionsItemSelected(item);
+	}
+
+
+	private void scheduleNotesUpload()
+	{
+		PersistableBundle persistableBundle = new PersistableBundle();
+		persistableBundle
+				.putString(NoteUploaderJobService.EXTRA_DATA_URI, NotesForLaterProviderContract.Notes.CONTENT_URI
+						.toString());
+
+		ComponentName componentName = new ComponentName(this, NoteUploaderJobService.class);
+
+		JobInfo jobInfo = new JobInfo.Builder(NOTE_UPLOADER_JOB_ID, componentName)
+				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+				.setExtras(persistableBundle)
+				.build();
+
+		JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+		jobScheduler.schedule(jobInfo);
+
 	}
 
 	private void backupNotes()
