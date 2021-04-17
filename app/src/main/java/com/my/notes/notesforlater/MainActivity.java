@@ -7,6 +7,7 @@ import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -15,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PersistableBundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,7 +47,7 @@ import java.util.List;
 
 import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor>
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor>, CourseEventDisplayCallback
 {
 	public static final int NOTE_UPLOADER_JOB_ID = 1;
 	private NoteRecyclerAdapter mNoteRecyclerAdapter;
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private NotesForLaterDBHelper mDbOpenHelper;
 	public static final int LOADER_NOTES = 0;
 	private GridLayoutManager mMGridLayoutManager;
+	private CourseEventsReceiver mCourseEventsReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -89,6 +92,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		navigationView.setNavigationItemSelectedListener(this);
 
 		initializeDisplayContent();
+
+		setupCourseEventsReceiver();
+	}
+
+	private void setupCourseEventsReceiver()
+	{
+		mCourseEventsReceiver = new CourseEventsReceiver();
+		mCourseEventsReceiver.setCourseEventDisplayCallback(this);
+
+		IntentFilter intentFilter = new IntentFilter(CourseEventsReceiver.ACTION_COURSE_EVENT);
+		registerReceiver(mCourseEventsReceiver, intentFilter);
 	}
 
 
@@ -144,6 +158,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	protected void onDestroy()
 	{
 		mDbOpenHelper.close();
+		unregisterReceiver(mCourseEventsReceiver);
 		super.onDestroy();
 	}
 
@@ -377,5 +392,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			mNoteRecyclerAdapter.changeCursor(null);
 		}
+	}
+
+	@Override
+	public void onEventReceived(String courseId, String courseMessage)
+	{
+		Log.d(getClass()
+				.getSimpleName(), ">>>Received courses from broadcast receiver<<< \n courseId: " + courseId + "| courseMessage: " + courseMessage);
 	}
 }

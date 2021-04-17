@@ -1,7 +1,9 @@
 package com.my.notes.notesforlater;
 
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.LoaderManager;
+import android.app.PendingIntent;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.CursorLoader;
@@ -12,6 +14,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -134,7 +137,26 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		String noteTitle = mTextNoteTitle.getText().toString();
 		String noteText = mTextNoteText.getText().toString();
 		int noteId = (int) ContentUris.parseId(mNoteUri);
-		NoteReminderNotification.notify(this, noteTitle, noteText, noteId);
+
+		Intent intent = new Intent(this, NoteReminderReceiver.class);
+		intent.putExtra(NoteReminderReceiver.EXTRA_NOTE_TITLE, noteTitle);
+		intent.putExtra(NoteReminderReceiver.EXTRA_NOTE_TEXT, noteText);
+		intent.putExtra(NoteReminderReceiver.EXTRA_NOTE_ID, noteId);
+
+		PendingIntent pendingIntent = PendingIntent
+				.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+		AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+		long currentTimeInMillis = SystemClock.elapsedRealtime();
+		long oneHour = 60 * 60 * 1000;
+
+		long tenSeconds = 10 * 60;
+
+		long alarmTime = currentTimeInMillis + tenSeconds;
+
+		alarmManager.set(AlarmManager.ELAPSED_REALTIME, alarmTime, pendingIntent);
+
 	}
 
 	private void readDisplayStateValues()
@@ -298,6 +320,8 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		mSpinnerCourses.setSelection(courseIndex);
 		mTextNoteTitle.setText(noteTitle);
 		mTextNoteText.setText(noteText);
+
+		CourseEventBroadcastHelper.sendEventBroadcast(this, courseId, "");
 	}
 
 	private int getIndexOfCourseId(String courseId)
