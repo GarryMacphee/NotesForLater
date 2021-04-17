@@ -97,4 +97,8 @@
 	<string name="menu_slideshow">Slideshow</string>
 	<string name="note_title">Note title</string>
 	<string name="note_text">Note text</string>
+	<string name="back_up_all_notes">Back up all notes</string>
+	<string name="set_reminder">Set reminder</string>
+	<string name="next">Next</string>
+	<string name="upload_notes">Upload Notes</string>
 </resources>

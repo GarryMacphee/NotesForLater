@@ -5,7 +5,7 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	app:layout_behavior="@string/appbar_scrolling_view_behavior"
-	tools:context="com.my.notes.notesforlater.NotesActivity"
+	tools:context="com.my.notes.notesforlater.notes.NotesActivity"
 	tools:showIn="@layout/activity_notes">
 
 	<Spinner
@@ -25,9 +25,7 @@
 		style="@style/NotesForLaterTextStyle.EditTextStyle"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
-		android:layout_marginLeft="0dp"
 		android:layout_marginTop="8dp"
-		android:layout_marginRight="0dp"
 		android:ems="10"
 		android:hint="@string/note_title"
 		android:inputType="textMultiLine"
@@ -39,13 +37,22 @@
 		android:id="@+id/text_note_text"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
-		android:layout_marginLeft="0dp"
 		android:layout_marginTop="8dp"
-		android:layout_marginRight="0dp"
 		android:ems="10"
 		android:hint="@string/note_text"
 		android:inputType="textMultiLine"
 		app:layout_constraintLeft_toLeftOf="@+id/text_note_title"
 		app:layout_constraintRight_toRightOf="@+id/text_note_title"
 		app:layout_constraintTop_toBottomOf="@+id/text_note_title" />
+
+	<ProgressBar
+		android:id="@+id/mProgressBar"
+		style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:max="3"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

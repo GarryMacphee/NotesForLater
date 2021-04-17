@@ -2,13 +2,22 @@ package com.my.notes.notesforlater;
 
 import android.annotation.SuppressLint;
 import android.app.LoaderManager;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.PersistableBundle;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,22 +42,35 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+import com.my.notes.notesforlater.backup.NoteBackup;
+import com.my.notes.notesforlater.backup.NotesBackupService;
+import com.my.notes.notesforlater.broadcastreceivers.CourseEventsReceiver;
+import com.my.notes.notesforlater.courses.CourseInfo;
+import com.my.notes.notesforlater.courses.CourseRecyclerAdapter;
+import com.my.notes.notesforlater.data.DataManager;
+import com.my.notes.notesforlater.data.NotesForLaterDBHelper;
+import com.my.notes.notesforlater.data.NotesForLaterProviderContract;
+import com.my.notes.notesforlater.notes.NoteRecyclerAdapter;
+import com.my.notes.notesforlater.notes.NotesActivity;
+import com.my.notes.notesforlater.settings.SettingsActivity;
+import com.my.notes.notesforlater.upload.NoteUploaderJobService;
 
 import java.util.List;
 
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.CourseInfoEntry;
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
+import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.NoteInfoEntry;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor>
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor>, CourseEventDisplayCallback
 {
+	public static final int NOTE_UPLOADER_JOB_ID = 1;
 	private NoteRecyclerAdapter mNoteRecyclerAdapter;
 	private AppBarConfiguration mAppBarConfiguration;
 	private LinearLayoutManager mLinearLayoutManager;
 	private RecyclerView mRecyclerView;
 	private CourseRecyclerAdapter mMCourseRecyclerAdapter;
-	private GridLayoutManager mGridLayoutManager;
 	private NotesForLaterDBHelper mDbOpenHelper;
 	public static final int LOADER_NOTES = 0;
+	private GridLayoutManager mMGridLayoutManager;
+	private CourseEventsReceiver mCourseEventsReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -57,6 +79,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		setContentView(R.layout.activity_main);
 		Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
+
+		enableStrictMode();
 
 		mDbOpenHelper = new NotesForLaterDBHelper(this);
 
@@ -80,7 +104,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		navigationView.setNavigationItemSelectedListener(this);
 
 		initializeDisplayContent();
+
+		setupCourseEventsReceiver();
 	}
+
+	private void setupCourseEventsReceiver()
+	{
+		mCourseEventsReceiver = new CourseEventsReceiver();
+		mCourseEventsReceiver.setCourseEventDisplayCallback(this);
+
+		IntentFilter intentFilter = new IntentFilter(CourseEventsReceiver.ACTION_COURSE_EVENT);
+		registerReceiver(mCourseEventsReceiver, intentFilter);
+	}
+
+
+	private void enableStrictMode()
+	{
+		/*if (BuildConfig.DEBUG)
+		{
+			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+					.detectAll()
+					.penaltyLog()
+					.build();
+			StrictMode.setThreadPolicy(policy);
+		}*/
+	}
+
 
 	private void initializeDisplayContent()
 	{
@@ -88,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		mRecyclerView = findViewById(R.id.list_items_recycler);
 		mLinearLayoutManager = new LinearLayoutManager(this);
-		mGridLayoutManager = new GridLayoutManager(this, getResources()
+		mMGridLayoutManager = new GridLayoutManager(this, getResources()
 				.getInteger(R.integer.course_grid_span));
 
 		GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(GridLayout
@@ -102,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		displayNotes();
 	}
 
-
 	private void displayNotes()
 	{
 		mRecyclerView.setLayoutManager(mLinearLayoutManager);
@@ -110,7 +158,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		selectNavigationItem(R.id.nav_notes);
 	}
-
 
 	private void selectNavigationItem(int id)
 	{
@@ -123,9 +170,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	protected void onDestroy()
 	{
 		mDbOpenHelper.close();
+		unregisterReceiver(mCourseEventsReceiver);
 		super.onDestroy();
 	}
-
 
 	@Override
 	public void onBackPressed()
@@ -150,8 +197,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		getLoaderManager().restartLoader(LOADER_NOTES, null, this);
 
 		updateNavHeader();
+
+		//openDrawer();
 	}
 
+	@SuppressLint("WrongConstant")
+	private void openDrawer()
+	{
+		Handler handler = new Handler(Looper.getMainLooper());
+
+		handler.postDelayed(() ->
+		{
+			DrawerLayout drawer = findViewById(R.id.drawer_layout);
+			drawer.openDrawer(Gravity.START);
+		}, 1000);
+	}
 
 	private void loadNotes()
 	{
@@ -210,7 +270,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			return true;
 		}
 
+		if (id == R.id.action_backup_notes)
+		{
+			backupNotes();
+		}
+
+		if (id == R.id.action_upload_notes)
+		{
+			scheduleNotesUpload();
+		}
+
 		return super.onOptionsItemSelected(item);
+	}
+
+
+	private void scheduleNotesUpload()
+	{
+		PersistableBundle persistableBundle = new PersistableBundle();
+		persistableBundle
+				.putString(NoteUploaderJobService.EXTRA_DATA_URI, NotesForLaterProviderContract.Notes.CONTENT_URI
+						.toString());
+
+		ComponentName componentName = new ComponentName(this, NoteUploaderJobService.class);
+
+		JobInfo jobInfo = new JobInfo.Builder(NOTE_UPLOADER_JOB_ID, componentName)
+				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+				.setExtras(persistableBundle)
+				.build();
+
+		JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+		jobScheduler.schedule(jobInfo);
+
+	}
+
+	private void backupNotes()
+	{
+		Intent intent = new Intent(this, NotesBackupService.class);
+		intent.putExtra(NotesBackupService.EXTRA_COURSE_ID, NoteBackup.ALL_COURSES);
+		startService(intent);
 	}
 
 	@Override
@@ -256,10 +353,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				Snackbar.LENGTH_LONG).show();
 	}
 
-
 	private void displayCourses()
 	{
-		mRecyclerView.setLayoutManager(mGridLayoutManager);
+		mRecyclerView.setLayoutManager(mMGridLayoutManager);
 		mRecyclerView.setAdapter(mMCourseRecyclerAdapter);
 		selectNavigationItem(R.id.nav_courses);
 	}
@@ -277,36 +373,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		CursorLoader loader = null;
 		if (id == LOADER_NOTES)
 		{
-			loader = new CursorLoader(this)
-			{
-				@Override
-				public Cursor loadInBackground()
-				{
-					SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
-
-					final String[] noteColumns = {
-							NoteInfoEntry.getQName(NoteInfoEntry._ID),
-							NoteInfoEntry.COLUMN_NOTE_TITLE,
-							CourseInfoEntry.COLUMN_COURSE_TITLE
-					};
-
-					final String noteOrderBy = CourseInfoEntry.COLUMN_COURSE_TITLE + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
-
-					// note_info JOIN course_info ON note_info.course_id = course_info.course_id
-					String tablesWithJoin = NoteInfoEntry.TABLE_NAME + " JOIN " +
-							CourseInfoEntry.TABLE_NAME + " ON " +
-							NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_COURSE_ID) + " = " +
-							CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_ID);
-
-					return db.query(tablesWithJoin, noteColumns,
-							null, null, null, null, noteOrderBy);
-				}
+			final String[] noteColumns = {
+					NotesForLaterProviderContract.Notes._ID,
+					NotesForLaterProviderContract.Notes.COLUMN_NOTE_TITLE,
+					NotesForLaterProviderContract.Notes.COLUMN_COURSE_TITLE
 			};
-		}
 
+			final String noteOrderBy = NotesForLaterProviderContract.Notes.COLUMN_COURSE_TITLE + "," + NotesForLaterProviderContract.Notes.COLUMN_NOTE_TITLE;
+
+			loader = new CursorLoader(this, NotesForLaterProviderContract.Notes.CONTENT_EXPANDED_URI,
+					noteColumns, null, null, noteOrderBy);
+
+		}
 		return loader;
 	}
-
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor data)
@@ -324,5 +404,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			mNoteRecyclerAdapter.changeCursor(null);
 		}
+	}
+
+	@Override
+	public void onEventReceived(String courseId, String courseMessage)
+	{
+		Log.d(getClass()
+				.getSimpleName(), ">>>Received courses from broadcast receiver<<< \n courseId: " + courseId + "| courseMessage: " + courseMessage);
 	}
 }

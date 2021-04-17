@@ -5,6 +5,9 @@ import androidx.test.espresso.contrib.NavigationViewActions;
 import androidx.test.espresso.contrib.RecyclerViewActions;
 import androidx.test.rule.ActivityTestRule;
 
+import com.my.notes.notesforlater.data.DataManager;
+import com.my.notes.notesforlater.notes.NoteInfo;
+
 import org.junit.Rule;
 import org.junit.Test;
 

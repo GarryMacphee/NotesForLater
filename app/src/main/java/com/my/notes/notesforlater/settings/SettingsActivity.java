@@ -1,4 +1,4 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.settings;
 
 
 import android.annotation.TargetApi;
@@ -21,6 +21,8 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 
 import androidx.core.app.NavUtils;
+
+import com.my.notes.notesforlater.R;
 
 import java.util.List;
 

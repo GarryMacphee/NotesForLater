@@ -1,14 +1,17 @@
-package com.my.notes.notesforlater;
+package com.my.notes.notesforlater.data;
 
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.my.notes.notesforlater.courses.CourseInfo;
+import com.my.notes.notesforlater.notes.NoteInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.CourseInfoEntry;
-import static com.my.notes.notesforlater.NotesForLaterDatabaseContract.NoteInfoEntry;
+import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.CourseInfoEntry;
+import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.NoteInfoEntry;
 
 public class DataManager
 {
