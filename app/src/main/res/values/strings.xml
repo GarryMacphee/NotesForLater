@@ -101,4 +101,5 @@
 	<string name="set_reminder">Set reminder</string>
 	<string name="next">Next</string>
 	<string name="upload_notes">Upload Notes</string>
+	<string name="add_new_note" translatable="false">Add new note</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.my.notes.notesforlater.ui.home;
+package com.my.notes.notesforlater.home;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

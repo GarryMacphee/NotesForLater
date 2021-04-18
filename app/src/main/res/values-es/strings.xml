@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="action_settings">Ajustes</string>
+	<string name="app_name">Señalador</string>
+	<string name="attachment_summary_off">Solo descargar archivos adjuntos cuando se solicita manualmente.</string>
+	<string name="attachment_summary_on">Descargar automáticamente archivos adjuntos para correos electrónicos entrantes</string>
+	<string name="attachment_title">Descargar archivos adjuntos entrantes</string>
+	<string name="cancel">Cancelar</string>
+	<string name="messages_header">Mensajes</string>
+	<string name="nav_header_desc">Encabezado de navegación</string>
+	<string name="nav_header_subtitle">Android.studio@android.com</string>
+	<string name="nav_header_title">Estudio de Android</string>
+	<string name="navigation_drawer_close">Cerrar cajón de navegación</string>
+	<string name="navigation_drawer_open">Cajón de navegación abierto</string>
+	<string name="pref_default_display_name">Usuario</string>
+	<string name="pref_default_email_address">Yourname@yourhost.com</string>
+	<string name="pref_default_favorite_social">http://plus.google.com</string>
+	<string name="pref_description_social_recommendations">Recomendaciones para que las personas se pongan en contacto según su historial de mensajes.</string>
+	<string name="pref_header_data_sync">Datos y sincronización</string>
+	<string name="pref_header_general">General</string>
+	<string name="title_activity_main">Señalador</string>
+	<string name="title_activity_settings">Configuración de configuración</string>
+	<string name="pref_title_display_name">Nombre para mostrar</string>
+	<string name="pref_title_email_address">Dirección de correo electrónico</string>
+	<string name="pref_title_favorite_social">Red social favorita</string>
+	<string name="pref_title_new_message_notifications">Nuevas notificaciones de mensajes</string>
+	<string name="pref_title_ringtone">Tono de llamada</string>
+	<string name="pref_header_notifications">Notificaciones</string>
+	<string name="pref_ringtone_silent">Silencio</string>
+	<string name="pref_title_social_recommendations">Habilitar las recomendaciones sociales</string>
+	<string name="pref_title_sync_frequency">Frecuencia de sincronización</string>
+	<string name="pref_title_system_sync_settings">Configuración de sincronización del sistema</string>
+	<string name="pref_title_vibrate">Vibrar</string>
+	<string name="pref_default_favourite_social">http://plus.google.com</string>
+	<string name="reply_title">Acción de respuesta predeterminada</string>
+	<string name="send_as_email">Enviar como correo electrónico</string>
+	<string name="signature_title">Tu firma</string>
+	<string name="menu_home">Casa</string>
+	<string name="menu_gallery">Galería</string>
+	<string name="menu_slideshow">Diapositivas</string>
+	<string name="note_title">Título de la nota</string>
+	<string name="note_text">Nota de texto</string>
+	<string name="back_up_all_notes">Copia de seguridad de todas las notas</string>
+	<string name="set_reminder">Recordatorio</string>
+	<string name="next">próximo</string>
+	<string name="upload_notes">Cargar notas</string>
+</resources>

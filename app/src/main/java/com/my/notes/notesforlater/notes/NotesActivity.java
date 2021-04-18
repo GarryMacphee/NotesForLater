@@ -10,6 +10,7 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -29,6 +30,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.my.notes.notesforlater.ModuleStatusView;
 import com.my.notes.notesforlater.R;
 import com.my.notes.notesforlater.broadcastreceivers.CourseEventBroadcastHelper;
 import com.my.notes.notesforlater.broadcastreceivers.NoteReminderReceiver;
@@ -36,6 +38,8 @@ import com.my.notes.notesforlater.courses.CourseInfo;
 import com.my.notes.notesforlater.data.DataManager;
 import com.my.notes.notesforlater.data.NotesForLaterDBHelper;
 import com.my.notes.notesforlater.data.NotesForLaterProviderContract;
+
+import org.jetbrains.annotations.NotNull;
 
 import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.CourseInfoEntry;
 import static com.my.notes.notesforlater.data.NotesForLaterDatabaseContract.NoteInfoEntry;
@@ -49,6 +53,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 	public static final int ID_NOT_SET = -1;
 	public static final int LOADER_NOTES = 0;
 	public static final int LOADER_COURSES = 1;
+	public static final String NOTE_URI = "com.my.notes.notesforlater.NOTE_URI";
 	private final String TAG = getClass().getSimpleName();
 	private NoteInfo mNote = new NoteInfo(DataManager.getInstance().getCourses().get(0), "", "");
 	private boolean mIsNewNote;
@@ -70,6 +75,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 	private boolean mCoursesQueryFinished;
 	private boolean mNotesQueryFinished;
 	private Uri mNoteUri;
+	private ModuleStatusView mViewModuleStatus;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -97,8 +103,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		mAdapterCourses.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mSpinnerCourses.setAdapter(mAdapterCourses);
 
-		//loadCourseData();
-
 		getLoaderManager().initLoader(LOADER_COURSES, null, this);
 
 		readDisplayStateValues();
@@ -109,17 +113,35 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		else
 		{
 			restoreOriginalNoteValues(savedInstanceState);
+			String uri = savedInstanceState.getString(NOTE_URI);
+			mNoteUri = Uri.parse(uri);
 		}
 
 		mTextNoteTitle = findViewById(R.id.text_note_title);
 		mTextNoteText = findViewById(R.id.text_note_text);
 
-		if (!mIsNewNote)
-			//loadNoteData();
+		mViewModuleStatus = findViewById(R.id.moduleStatusViewId);
 
+		loadModuleStatusValues();
+
+		if (!mIsNewNote)
 			getLoaderManager().initLoader(LOADER_NOTES, null, this);
 
 		Log.d(TAG, "onCreate");
+	}
+
+	private void loadModuleStatusValues()
+	{
+		int totalModules = 11;
+		int completedModules = 7;
+		boolean[] moduleStatuses = new boolean[totalModules];
+
+		for (int moduleIndex = 0; moduleIndex < completedModules; moduleIndex++)
+		{
+			moduleStatuses[moduleIndex] = true;
+		}
+		mViewModuleStatus.setCirclesStatus(moduleStatuses);
+
 	}
 
 	private void loadCourseData()
@@ -175,8 +197,6 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 		{
 			createNewNote();
 		}
-
-		//Log.i(TAG, "mNoteId: " + mNoteId);
 	}
 
 	private void saveOriginalNoteValues()
@@ -318,17 +338,25 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 
 	private void displayNote()
 	{
-		String courseId = mCursor.getString(mCourseIdPos);
-		String noteTitle = mCursor.getString(mNoteTitlePos);
-		String noteText = mCursor.getString(mNoteTextPos);
 
-		int courseIndex = getIndexOfCourseId(courseId);
+		String courseId = null;
+		try
+		{
+			courseId = mCursor.getString(mCourseIdPos);
+			String noteTitle = mCursor.getString(mNoteTitlePos);
+			String noteText = mCursor.getString(mNoteTextPos);
 
-		mSpinnerCourses.setSelection(courseIndex);
-		mTextNoteTitle.setText(noteTitle);
-		mTextNoteText.setText(noteText);
+			int courseIndex = getIndexOfCourseId(courseId);
 
-		CourseEventBroadcastHelper.sendEventBroadcast(this, courseId, "");
+			mSpinnerCourses.setSelection(courseIndex);
+			mTextNoteTitle.setText(noteTitle);
+			mTextNoteText.setText(noteText);
+
+			CourseEventBroadcastHelper.sendEventBroadcast(this, courseId, "");
+		} catch (CursorIndexOutOfBoundsException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	private int getIndexOfCourseId(String courseId)
@@ -417,7 +445,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 
 	private void saveNote()
 	{
-		String courseId = selectCourseId();
+		String courseId = selectedCourseId();
 		String noteTitle = mTextNoteTitle.getText().toString();
 		String noteText = mTextNoteText.getText().toString();
 		saveNoteToDatabase(courseId, noteTitle, noteText);
@@ -444,6 +472,7 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 
 	private void saveNoteToDatabase(String courseId, String noteTitle, String noteText)
 	{
+		if (null == mNoteUri) return;
 		ContentValues values = new ContentValues();
 		values.put(NotesForLaterProviderContract.Notes.COLUMNS_COURSES_ID, courseId);
 		values.put(NotesForLaterProviderContract.Notes.COLUMN_NOTE_TITLE, noteTitle);
@@ -453,11 +482,15 @@ public class NotesActivity extends AppCompatActivity implements LoaderManager.Lo
 	}
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState)
+	protected void onSaveInstanceState(@NotNull Bundle outState)
 	{
 		super.onSaveInstanceState(outState);
-		if (outState != null)
-			mViewModel.saveState(outState);
+		outState.putString(ORIGINAL_NOTE_COURSE_ID, mOriginalNoteCourseId);
+		outState.putString(ORIGINAL_NOTE_TITLE, mOriginalNoteTitle);
+		outState.putString(ORIGINAL_NOTE_TEXT, mOriginalNoteText);
+
+		outState.putString(NOTE_URI, mNoteUri.toString());
+		//mViewModel.saveState(outState);
 	}
 
 	@Override

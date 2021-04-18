@@ -1,0 +1,16 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+
+	<com.my.notes.notesforlater.ModuleStatusView
+		style="@style/Widget.AppTheme.MyView"
+		android:layout_width="300dp"
+		android:layout_height="300dp"
+		android:paddingStart="10dp"
+		android:paddingTop="10dp"
+		android:paddingBottom="40dp"
+		android:background="@color/white"
+		tools:ignore="RtlSymmetry" />
+
+</FrameLayout>

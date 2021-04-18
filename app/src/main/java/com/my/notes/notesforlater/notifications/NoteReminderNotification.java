@@ -53,7 +53,8 @@ public class NoteReminderNotification
 
 		final Resources res = context.getResources();
 
-		final Bitmap picture = BitmapFactory.decodeResource(res, R.drawable.syphologo);
+		final Bitmap picture = BitmapFactory
+				.decodeResource(res, R.mipmap.ic_sypho_launcher_foreground);
 
 		Intent noteActivityIntent = new Intent(context, NotesActivity.class);
 		noteActivityIntent.putExtra(NotesActivity.NOTE_ID, noteId);
@@ -66,7 +67,7 @@ public class NoteReminderNotification
 
 				.setGroup(GROUP_NOTIFICATIONS_ID)
 				.setDefaults(Notification.DEFAULT_ALL)
-				.setSmallIcon(R.drawable.syphologo)
+				.setSmallIcon(R.mipmap.ic_sypho_launcher_foreground)
 				.setContentTitle("Review note")
 				.setContentText(noteText)
 				.setPriority(NotificationCompat.PRIORITY_DEFAULT)
